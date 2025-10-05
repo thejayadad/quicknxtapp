@@ -1,25 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { HeaderNavItem } from "./header-types";
+import { Home } from "lucide-react";
+// add more imports when you add more items
 
 export default function MobileDrawer({
   open,
   onClose,
-  items,
 }: {
   open: boolean;
   onClose: () => void;
-  items: HeaderNavItem[]; // <-- use header’s local type
 }) {
-  useEffect(() => {
-    // Hook router events to auto-close if you want
-  }, []);
+  const items = [
+    { href: "/", label: "Home", Icon: Home },
+    // { href: "/library", label: "Library", Icon: Library },
+  ] as const;
 
   return (
     <>
-      {/* Scrim */}
+      {/* scrim */}
       <div
         aria-hidden
         onClick={onClose}
@@ -28,7 +27,7 @@ export default function MobileDrawer({
         }`}
       />
 
-      {/* Drawer */}
+      {/* drawer */}
       <aside
         aria-label="Main menu"
         className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[84vw] transform bg-white/90 backdrop-blur-xl border-r border-neutral-200 p-4 transition-transform duration-300 ease-out ${
@@ -40,7 +39,7 @@ export default function MobileDrawer({
         </div>
 
         <nav className="space-y-1">
-          {items.map(({ href, label, icon: Icon }) => (
+          {items.map(({ href, label, Icon }) => (
             <Link
               key={href}
               href={href}
