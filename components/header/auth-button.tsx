@@ -63,7 +63,7 @@ export default function AuthButton({
       onClick={signOut}
       disabled={loading !== null}
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm
-                  border border-neutral-200/80 bg-white/80 hover:bg-white
+                  bg-white/80 hover:bg-white
                   text-neutral-800 transition disabled:opacity-60 disabled:cursor-not-allowed ${className ?? ""}`}
       aria-label="Sign out"
     >

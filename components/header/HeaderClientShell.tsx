@@ -5,16 +5,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Menu, X } from "lucide-react";
 import AuthButton from "./auth-button";
 import MobileDrawer from "./mobile-drawer";
+import { usePlayer } from "../ui/PlayerProvider";
 
 type Props = {
   isAuthenticated?: boolean;
   displayName?: string | null;
+  username?: string | null;
 };
 
-export default function HeaderClientShell({ isAuthenticated = false, displayName }: Props) {
+export default function HeaderClientShell({ isAuthenticated = false, displayName, username }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const toggle = useCallback(() => setDrawerOpen(v => !v), []);
   const close  = useCallback(() => setDrawerOpen(false), []);
+  const player = usePlayer();
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
@@ -26,8 +29,10 @@ export default function HeaderClientShell({ isAuthenticated = false, displayName
     [displayName, isAuthenticated]
   );
 
-  const onBack = () => window.history.back();
-  const onForward = () => window.history.forward();
+  const brandText = useMemo(() => (username ? `${username} • Music` : "Music"), [username]);
+
+  const onBack = () => player.prev();
+  const onForward = () => player.next();
 
   return (
     <>
@@ -47,16 +52,16 @@ export default function HeaderClientShell({ isAuthenticated = false, displayName
               </button>
 
               <div className="hidden md:flex items-center gap-1.5">
-                <IconButton label="Back" onClick={onBack}>
+                <IconButton label="Previous" onClick={onBack}>
                   <ArrowLeft className="h-5 w-5" />
                 </IconButton>
-                <IconButton label="Forward" onClick={onForward}>
+                <IconButton label="Next" onClick={onForward}>
                   <ArrowRight className="h-5 w-5" />
                 </IconButton>
               </div>
 
               <Link href="/" className="ml-2 text-sm font-semibold tracking-tight text-neutral-900">
-                thejayadad • Music
+                {brandText}
               </Link>
             </div>
 
