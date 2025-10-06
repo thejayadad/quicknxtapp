@@ -1,23 +1,25 @@
+// components/header/HeaderClientShell.tsx
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, Menu, X } from "lucide-react";
 import AuthButton from "./auth-button";
 import MobileDrawer from "./mobile-drawer";
-import { usePlayer } from "../ui/PlayerProvider";
+import type { TrackCardData } from "@/components/tracks/track-card";
 
-type Props = {
+export default function HeaderClientShell({
+  isAuthenticated = false,
+  displayName,
+  myTracks = [],
+}: {
   isAuthenticated?: boolean;
   displayName?: string | null;
-  username?: string | null;
-};
-
-export default function HeaderClientShell({ isAuthenticated = false, displayName, username }: Props) {
+  myTracks?: TrackCardData[];
+}) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const toggle = useCallback(() => setDrawerOpen(v => !v), []);
   const close  = useCallback(() => setDrawerOpen(false), []);
-  const player = usePlayer();
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
@@ -29,19 +31,16 @@ export default function HeaderClientShell({ isAuthenticated = false, displayName
     [displayName, isAuthenticated]
   );
 
-  const brandText = useMemo(() => (username ? `${username} • Music` : "Music"), [username]);
-
-  const onBack = () => player.prev();
-  const onForward = () => player.next();
+  const onBack = () => window.history.back();
+  const onForward = () => window.history.forward();
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-30 h-24 bg-gradient-to-b from-neutral-50/80 to-transparent" />
-
-      <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-white/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/55">
+      <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto max-w-screen-2xl px-3 sm:px-4">
           <div className="flex h-14 items-center justify-between">
             <div className="flex items-center gap-1.5">
+              {/* Burger */}
               <button
                 type="button"
                 onClick={toggle}
@@ -51,17 +50,14 @@ export default function HeaderClientShell({ isAuthenticated = false, displayName
                 {drawerOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
 
+              {/* Back/Forward on md+ */}
               <div className="hidden md:flex items-center gap-1.5">
-                <IconButton label="Previous" onClick={onBack}>
-                  <ArrowLeft className="h-5 w-5" />
-                </IconButton>
-                <IconButton label="Next" onClick={onForward}>
-                  <ArrowRight className="h-5 w-5" />
-                </IconButton>
+                <IconButton label="Back" onClick={onBack}><ArrowLeft className="h-5 w-5" /></IconButton>
+                <IconButton label="Forward" onClick={onForward}><ArrowRight className="h-5 w-5" /></IconButton>
               </div>
 
               <Link href="/" className="ml-2 text-sm font-semibold tracking-tight text-neutral-900">
-                {brandText}
+                thejayadad • Music
               </Link>
             </div>
 
@@ -70,27 +66,27 @@ export default function HeaderClientShell({ isAuthenticated = false, displayName
                 isAuthenticated={isAuthenticated}
                 displayName={userLabel}
                 callbackURL="/"
-                useAuthClient={true}
+                useAuthClient
               />
             </div>
           </div>
         </div>
       </header>
 
-      <MobileDrawer open={drawerOpen} onClose={close} />
+      {/* Drawer with My Tracks */}
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={close}
+        isAuthenticated={isAuthenticated}
+        myTracks={myTracks}
+      />
     </>
   );
 }
 
 function IconButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick?: () => void;
-  children: React.ReactNode;
-}) {
+  label, onClick, children,
+}: { label: string; onClick?: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"

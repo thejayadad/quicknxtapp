@@ -27,7 +27,7 @@ export default function TrackGrid({ tracks }: { tracks: TrackDTO[] }) {
   };
 
   return (
-    <ul className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <ul className="grid gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
       {tracks.map((t) => {
         const playing = isCurrent(t.id) && player.isPlaying;
         return (

@@ -1,24 +1,39 @@
+// components/header/mobile-drawer.tsx
 "use client";
 
 import Link from "next/link";
-import { Home } from "lucide-react";
-// add more imports when you add more items
+import { Home, Search } from "lucide-react";
+import type { TrackCardData } from "@/components/tracks/track-card";
+import Logo from "@/components/ui/logo";
+import MyTracksSection from "../sidebar/my-tracks-section";
+
+export type DrawerNavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+};
 
 export default function MobileDrawer({
   open,
   onClose,
+  isAuthenticated,
+  myTracks,
+  items = [
+    { href: "/", label: "Home", icon: Home },
+    { href: "/search", label: "Search", icon: Search },
+  ],
 }: {
   open: boolean;
   onClose: () => void;
+  isAuthenticated?: boolean;
+  myTracks?: TrackCardData[];
+  items?: DrawerNavItem[];
 }) {
-  const items = [
-    { href: "/", label: "Home", Icon: Home },
-    // { href: "/library", label: "Library", Icon: Library },
-  ] as const;
+  const tracks = myTracks ?? [];
 
   return (
     <>
-      {/* scrim */}
+      {/* Scrim */}
       <div
         aria-hidden
         onClick={onClose}
@@ -27,32 +42,38 @@ export default function MobileDrawer({
         }`}
       />
 
-      {/* drawer */}
+      {/* Drawer */}
       <aside
         aria-label="Main menu"
-        className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[84vw] transform bg-white/90 backdrop-blur-xl border-r border-neutral-200 p-4 transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[86vw] transform border-r border-neutral-200 bg-white backdrop-blur-xl transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-          Browse
+        <div className="flex h-14 items-center border-b border-neutral-200/70 px-3">
+          <Logo />
         </div>
 
-        <nav className="space-y-1">
-          {items.map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={onClose}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-[15px] text-neutral-800 hover:bg-neutral-100"
-            >
-              <span className="grid h-8 w-8 place-items-center rounded-md border border-neutral-200 bg-white">
-                <Icon className="h-4 w-4 opacity-80" />
-              </span>
-              <span className="truncate">{label}</span>
-            </Link>
-          ))}
-        </nav>
+        <div className="h-[calc(100%-3.5rem)] overflow-y-auto p-3">
+          {/* Primary nav */}
+          <nav className="space-y-1 pb-3">
+            {items.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-[15px] text-neutral-800 hover:bg-neutral-100"
+              >
+                <span className="grid h-8 w-8 place-items-center rounded-md border border-neutral-200 bg-white">
+                  <Icon className="h-4 w-4 opacity-80" />
+                </span>
+                <span className="truncate">{label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* My Tracks collapsible */}
+          <MyTracksSection isAuthenticated={!!isAuthenticated} tracks={tracks} />
+        </div>
       </aside>
     </>
   );

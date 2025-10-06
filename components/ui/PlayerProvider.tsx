@@ -1,15 +1,18 @@
+// components/player/PlayerProvider.tsx
 "use client";
 
 import { TrackDTO } from "@/lib/track-type";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type PlayerState = {
+  // keep the simple 'play' shape your cards were calling
+  play: (t: { id: string; src: string; title: string; artist: string; cover: string }) => void;
   queue: TrackDTO[];
-  index: number;                 // -1 = nothing loaded
+  index: number;
   isPlaying: boolean;
   current: TrackDTO | null;
-  currentTime: number;           // seconds
-  duration: number;              // seconds
+  currentTime: number;
+  duration: number;
   playTrack: (track: TrackDTO, queue?: TrackDTO[]) => void;
   toggle: () => void;
   next: () => void;
@@ -30,23 +33,16 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
 
   const current = index >= 0 && index < queue.length ? queue[index] : null;
 
-  // Create audio element lazily
   useEffect(() => {
     if (!audioRef.current) {
       const el = document.createElement("audio");
       el.preload = "metadata";
-
       const onTime = () => setCurrentTime(el.currentTime || 0);
       const onMeta = () => setDuration(el.duration || 0);
-      const onEnded = () => {
-        setIsPlaying(false);
-        next();
-      };
-
+      const onEnded = () => { setIsPlaying(false); next(); };
       el.addEventListener("timeupdate", onTime);
       el.addEventListener("loadedmetadata", onMeta);
       el.addEventListener("ended", onEnded);
-
       audioRef.current = el;
       return () => {
         el.removeEventListener("timeupdate", onTime);
@@ -54,9 +50,8 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
         el.removeEventListener("ended", onEnded);
       };
     }
-  }, []); // once
+  }, []);
 
-  // Load current track into audio element
   useEffect(() => {
     const el = audioRef.current;
     if (!el || !current) return;
@@ -64,12 +59,9 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
     el.currentTime = 0;
     setCurrentTime(0);
     setDuration(0);
-    if (isPlaying) {
-      el.play().catch(() => setIsPlaying(false));
-    }
+    if (isPlaying) el.play().catch(() => setIsPlaying(false));
   }, [current?.audioUrl]); // re-load when track changes
 
-  // Play/pause effect
   useEffect(() => {
     const el = audioRef.current;
     if (!el) return;
@@ -97,6 +89,18 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
     setIsPlaying(true);
   }, []);
 
+  // small wrapper that adapts the simple shape to TrackDTO
+  const play = useCallback((t: { id: string; src: string; title: string; artist: string; cover: string }) => {
+    const dto: TrackDTO = {
+      id: t.id,
+      title: t.title,
+      artist: t.artist,
+      audioUrl: t.src,
+      imageUrl: t.cover,
+    };
+    playTrack(dto);
+  }, [playTrack]);
+
   const toggle = useCallback(() => {
     if (!current) return;
     setIsPlaying((v) => !v);
@@ -106,7 +110,7 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
     setIndex((i) => {
       if (queue.length === 0) return -1;
       const n = i + 1;
-      return n < queue.length ? n : 0; // wrap
+      return n < queue.length ? n : 0;
     });
     setIsPlaying(true);
   }, [queue.length]);
@@ -115,7 +119,7 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
     setIndex((i) => {
       if (queue.length === 0) return -1;
       const p = i - 1;
-      return p >= 0 ? p : queue.length - 1; // wrap
+      return p >= 0 ? p : queue.length - 1;
     });
     setIsPlaying(true);
   }, [queue.length]);
@@ -128,9 +132,10 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
   }, [duration]);
 
   const value = useMemo<PlayerState>(() => ({
+    play, // ✅ now provided
     queue, index, isPlaying, current, currentTime, duration,
     playTrack, toggle, next, prev, seek, setQueue,
-  }), [queue, index, isPlaying, current, currentTime, duration, playTrack, toggle, next, prev, seek]);
+  }), [play, queue, index, isPlaying, current, currentTime, duration, playTrack, toggle, next, prev, seek, setQueue]);
 
   return <PlayerCtx.Provider value={value}>{children}</PlayerCtx.Provider>;
 }
